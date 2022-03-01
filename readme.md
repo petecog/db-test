@@ -1,3 +1,5 @@
+run all commands from the `docker/` directory
+
 # Initialisation
 
 `docker compose build`
@@ -15,9 +17,5 @@ token = `easy`
 run the notebook
 
 # End
-
-`docker compose down`
-
-And clear out data
 
 `docker compose down --remove-orphans --volumes`
