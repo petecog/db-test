@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  jupyter:
+    # image: nvcr.io/nvidia/tensorflow:21.11-tf2-py3
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile.jupyter.pip
+    image: aleph-tf-pgflow:conda
+    container_name: jupyter
+    ports:
+      - 10000:8888
+    volumes:
+      - ../notebooks:/home/joyvan/work
+    environment:
+      - JUPYTER_TOKEN=easy
+
+  postgres:
+    # Ref: https://hub.docker.com/_/postgres
+    image: postgres:13
+    container_name: postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
+      PGDATA: /var/lib/postgresql/data/pgdata
+    # user: "${UID}:${GID}"
+    ports:
+      - 5432:5432
+    volumes:
+      # - ./postgres/data/db:/var/lib/postgresql/data
+      - pg-data:/var/lib/postgresql/data
+      - ./postgres/post-init-scripts:/docker-entrypoint-initdb.d
+      - ./postgres/config:/config
+    shm_size: 256M
+    command: postgres -c 'config_file=/config/postgresql.conf'
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      retries: 5
+      timeout: 30s
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4:6
+    container_name: pgadmin
+    volumes:
+      # - ./pgadmin-data:/var/lib/pgadmin   # can be used to store pgadmin session info - not working on host mount!
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
+      - ./pgadmin/config_local.py:/pgadmin4/config_local.py
+      - ./pgadmin/pgpass:/pgpass
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - 10001:80
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg-data:
