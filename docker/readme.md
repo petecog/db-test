@@ -8,6 +8,12 @@ Go away and make a cup of coffee...
 
 `docker compose up`
 
+goto - <http://localhost:10000>
+
+token = `easy`
+
+run the notebook
+
 # End
 
 `docker compose down`
